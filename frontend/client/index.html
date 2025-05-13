@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>CareBridge - Medical Appointment System</title>
+    <script>
+      // Immediately check authentication and redirect to appropriate page
+      fetch('/api/user')
+        .then(response => {
+          if (!response.ok) {
+            window.location.href = '/auth.html';
+            throw new Error('Not authenticated');
+          }
+          return response.json();
+        })
+        .then(user => {
+          if (user.role === 'doctor') {
+            window.location.href = '/doctor-dashboard.html';
+          } else {
+            window.location.href = '/patient-dashboard.html';
+          }
+        })
+        .catch(error => {
+          console.error('Auth error:', error);
+          window.location.href = '/auth.html';
+        });
+    </script>
+  </head>
+  <body>
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+      <div style="text-align: center;">
+        <h1>Loading CareBridge...</h1>
+        <p>Please wait while we redirect you to the appropriate dashboard.</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - CareBridge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .form-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        input.invalid, select.invalid {
+            border-color: #ef4444;
+        }
+        /* Styling for placeholders */
+        ::placeholder {
+            color: #9ca3af;
+            opacity: 0.7;
+        }
+        .btn {
+            width: 100%;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #ef4444;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+        .field-error {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .form-link {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .form-link a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .form-link a:hover {
+            text-decoration: underline;
+        }
+        .doctor-fields {
+            display: none;
+        }
+        /* Custom tooltip styling */
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            background-color: #374151;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            max-width: 300px;
+            z-index: 10;
+            margin-top: -40px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CareBridge</h1>
+            <p>Create a new account</p>
+        </div>
+        
+        <div class="form-card">
+            <h2>Register</h2>
+            
+            <form id="register-form" novalidate>
+                <div class="form-group">
+                    <label for="role">Register as</label>
+                    <select id="role" name="role" required title="Select your role in the system">
+                        <option value="patient">Patient</option>
+                        <option value="doctor">Doctor</option>
+                    </select>
+                    <div id="role-error" class="field-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" required 
+                           placeholder="John Smith" 
+                           title="Enter your full name (2-50 characters, letters and spaces only)">
+                    <div id="fullName-error" class="field-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="john_smith123" 
+                           title="Choose a username (4-20 characters, letters, numbers, and underscores only)">
+                    <div id="username-error" class="field-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="john.smith@example.com" 
+                           title="Enter a valid email address">
+                    <div id="email-error" class="field-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required 
+                           title="Password must be at least 8 characters with at least one uppercase letter, one lowercase letter, and one number">
+                    <div id="password-error" class="field-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required 
+                           title="Re-enter your password to confirm">
+                    <div id="confirmPassword-error" class="field-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required 
+                           placeholder="1234567890" 
+                           title="Enter a 10-digit phone number without spaces or special characters">
+                    <div id="phone-error" class="field-error"></div>
+                </div>
+                
+                <!-- Doctor-specific fields -->
+                <div id="doctor-fields" class="doctor-fields">
+                    <div class="form-group">
+                        <label for="specialization">Specialization</label>
+                        <input type="text" id="specialization" name="specialization"
+                               placeholder="Cardiology" 
+                               title="Enter your medical specialization (2-50 characters, letters and spaces only)">
+                        <div id="specialization-error" class="field-error"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="licenseNumber">License Number</label>
+                        <input type="text" id="licenseNumber" name="licenseNumber"
+                               placeholder="MED12345" 
+                               title="Enter your medical license number (5-15 characters, uppercase letters and numbers only)">
+                        <div id="licenseNumber-error" class="field-error"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn" id="register-button">Register</button>
+                
+                <div id="error-message" class="error-message">
+                    Registration failed. Please check your information.
+                </div>
+            </form>
+            
+            <div class="form-link">
+                <a href="/auth.html">Already have an account? Sign in</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form elements
+            const form = document.getElementById('register-form');
+            const roleSelect = document.getElementById('role');
+            const fullNameInput = document.getElementById('fullName');
+            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const phoneInput = document.getElementById('phone');
+            const specializationInput = document.getElementById('specialization');
+            const licenseNumberInput = document.getElementById('licenseNumber');
+            const registerButton = document.getElementById('register-button');
+            
+            // Validation patterns
+            const patterns = {
+                fullName: /^[A-Za-z\s]{2,50}$/,
+                username: /^[A-Za-z0-9_]{4,20}$/,
+                email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/,
+                phone: /^\d{10}$/,
+                specialization: /^[A-Za-z\s]{2,50}$/,
+                licenseNumber: /^[A-Z0-9]{5,15}$/
+            };
+            
+            // Error messages
+            const errorMessages = {
+                fullName: "Full name should contain only letters and spaces (2-50 characters)",
+                username: "Username should be 4-20 characters with letters, numbers, and underscores only",
+                email: "Please enter a valid email address",
+                password: "Password must be at least 8 characters with at least one uppercase letter, one lowercase letter, and one number",
+                confirmPassword: "Passwords do not match",
+                phone: "Please enter a 10-digit phone number",
+                specialization: "Specialization should contain only letters and spaces (2-50 characters)",
+                licenseNumber: "License number should be 5-15 characters (uppercase letters and numbers only)"
+            };
+            
+            // Toggle doctor-specific fields based on role selection
+            roleSelect.addEventListener('change', function() {
+                const doctorFields = document.getElementById('doctor-fields');
+                if (this.value === 'doctor') {
+                    doctorFields.style.display = 'block';
+                    specializationInput.setAttribute('required', '');
+                    licenseNumberInput.setAttribute('required', '');
+                } else {
+                    doctorFields.style.display = 'none';
+                    specializationInput.removeAttribute('required');
+                    licenseNumberInput.removeAttribute('required');
+                }
+                validateField(specializationInput);
+                validateField(licenseNumberInput);
+            });
+            
+            // Validation function for each field
+            function validateField(input) {
+                // Skip validation if the field is not required and empty
+                if (!input.required && input.value.trim() === '') {
+                    hideError(input);
+                    return true;
+                }
+                
+                // For confirm password field
+                if (input.id === 'confirmPassword') {
+                    if (input.value !== passwordInput.value) {
+                        showError(input, errorMessages.confirmPassword);
+                        return false;
+                    } else {
+                        hideError(input);
+                        return true;
+                    }
+                }
+                
+                // For doctor-specific fields, only validate if role is doctor
+                if ((input.id === 'specialization' || input.id === 'licenseNumber') && 
+                    roleSelect.value !== 'doctor') {
+                    hideError(input);
+                    return true;
+                }
+                
+                // Regular expression validation for other fields
+                if (patterns[input.id] && !patterns[input.id].test(input.value)) {
+                    showError(input, errorMessages[input.id]);
+                    return false;
+                } else {
+                    hideError(input);
+                    return true;
+                }
+            }
+            
+            // Show error message for a field
+            function showError(input, message) {
+                const errorElement = document.getElementById(`${input.id}-error`);
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                input.classList.add('invalid');
+            }
+            
+            // Hide error message for a field
+            function hideError(input) {
+                const errorElement = document.getElementById(`${input.id}-error`);
+                errorElement.style.display = 'none';
+                input.classList.remove('invalid');
+            }
+            
+            // Add input event listeners for live validation
+            const inputs = [fullNameInput, usernameInput, emailInput, passwordInput, 
+                            confirmPasswordInput, phoneInput, specializationInput, licenseNumberInput];
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    validateField(this);
+                    // If this is password, also validate confirm password
+                    if (this.id === 'password') {
+                        validateField(confirmPasswordInput);
+                    }
+                });
+            });
+            
+            // Validate all fields and return true if all are valid
+            function validateForm() {
+                let isValid = true;
+                
+                // Validate all standard fields
+                isValid = validateField(fullNameInput) && isValid;
+                isValid = validateField(usernameInput) && isValid;
+                isValid = validateField(emailInput) && isValid;
+                isValid = validateField(passwordInput) && isValid;
+                isValid = validateField(confirmPasswordInput) && isValid;
+                isValid = validateField(phoneInput) && isValid;
+                
+                // Validate doctor-specific fields if role is doctor
+                if (roleSelect.value === 'doctor') {
+                    isValid = validateField(specializationInput) && isValid;
+                    isValid = validateField(licenseNumberInput) && isValid;
+                }
+                
+                return isValid;
+            }
+            
+            // Handle form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate all fields before submission
+                if (!validateForm()) {
+                    return;
+                }
+                
+                // Disable button and show loading state
+                registerButton.disabled = true;
+                registerButton.textContent = 'Registering...';
+                
+                const formData = {
+                    role: roleSelect.value,
+                    fullName: fullNameInput.value,
+                    username: usernameInput.value,
+                    email: emailInput.value,
+                    password: passwordInput.value,
+                    confirmPassword: confirmPasswordInput.value,
+                    phone: phoneInput.value
+                };
+                
+                // Add doctor-specific fields if doctor role is selected
+                if (formData.role === 'doctor') {
+                    formData.specialization = specializationInput.value;
+                    formData.licenseNumber = licenseNumberInput.value;
+                }
+                
+                // Send registration request
+                fetch(API_ENDPOINTS.register, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || 'Registration failed');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(userData => {
+                    console.log('Registration successful:', userData);
+                    // Store tokens from registration response
+                    if (userData.access_token) {
+                        localStorage.setItem('access_token', userData.access_token);
+                        localStorage.setItem('refresh_token', userData.refresh_token);
+                        console.log('Saved access and refresh tokens from registration');
+                    }
+                    
+                    // Redirect based on user role
+                    if (userData.role === 'doctor') {
+                        window.location.href = '/doctor-dashboard.html';
+                    } else {
+                        window.location.href = '/patient-dashboard.html';
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration error:', error);
+                    document.getElementById('error-message').textContent = error.message || "Registration failed";
+                    document.getElementById('error-message').style.display = 'block';
+                    
+                    // Re-enable button
+                    registerButton.disabled = false;
+                    registerButton.textContent = 'Register';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

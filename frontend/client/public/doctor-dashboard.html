@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - CareBridge</title>
+    <!-- Add reference to the API configuration file -->
+    <script src="/js/api-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        header {
+            background-color: #1a365d;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .welcome-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .appointment-list {
+            margin-top: 1rem;
+        }
+        .appointment-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        h1, h2 {
+            margin-top: 0;
+        }
+        /* Profile dropdown styles */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+            color: #333;
+        }
+        .profile-dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .dropdown-header .user-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .dropdown-header .user-email {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        .dropdown-link {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: #333;
+        }
+        .dropdown-link:hover {
+            background-color: #f3f4f6;
+        }
+        .dropdown-link.logout {
+            border-top: 1px solid #e5e7eb;
+            color: #ef4444;
+        }
+        /* Scrollable list styles */
+        .scrollable-list {
+            max-height: 300px;
+            overflow-y: auto;
+            /* Add scrollbar styling for better user experience */
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f1f5f9;
+        }
+        .scrollable-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollable-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background-color: #cbd5e0;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CareBridge</h1>
+        <nav class="navbar" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/doctor-dashboard.html" style="color: white;">Dashboard</a>
+            <a href="/doctor-appointments.html" style="color: white;">Appointments</a>
+            <a href="/doctor-availability.html" style="color: white;">Availability</a>
+            <a href="/doctor-profile.html" style="color: white;">My Profile</a>
+            <div class="profile-dropdown">
+                <div class="profile-icon" id="profile-icon">D</div>
+                <div class="dropdown-content">
+                    <div class="dropdown-header">
+                        <div class="user-name" id="dropdown-name">Dr. John Doe</div>
+                        <div class="user-email" id="dropdown-email">doctor@example.com</div>
+                    </div>
+                    <a href="/doctor-profile.html" class="dropdown-link">Profile</a>
+                    <a href="#" id="logout-btn" class="dropdown-link logout">Logout</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="welcome-panel">
+            <h2>Welcome, Doctor</h2>
+            <p>Manage your appointments and patient schedule from this dashboard.</p>
+        </div>
+
+        <div class="card-grid">
+            <div class="card">
+                <h3>Today's Appointments</h3>
+                <div class="appointment-list scrollable-list" id="today-appointments">
+                    <!-- Loading indicator -->
+                    <div id="loading-appointments" style="padding: 1rem; text-align: center;">
+                        Loading appointments...
+                    </div>
+                    <!-- Appointments will be inserted here by JavaScript -->
+                </div>
+                <a href="/doctor-appointments.html"><button class="btn" style="margin-top: 1rem;">View All</button></a>
+            </div>
+
+            <div class="card">
+                <h3>Your Availability</h3>
+                <p>Manage your available time slots for appointments</p>
+                <a href="/doctor-availability.html"><button class="btn">Update Availability</button></a>
+            </div>
+
+            <div class="card">
+                <h3>Patient Summary</h3>
+                <div id="patient-summary">
+                    <p>Loading patient summary...</p>
+                </div>
+                <a href="/doctor-appointments.html"><button class="btn" style="margin-top: 1rem;">View All Patients</button></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global variables
+            let currentUserId = null;
+            const token = localStorage.getItem('access_token');
+            
+            // Check if user is authenticated as a doctor
+            fetch(API_ENDPOINTS.user, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        window.location.href = '/auth.html';
+                        throw new Error('Not authenticated');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    if (user.role !== 'doctor') {
+                        window.location.href = '/patient-dashboard.html';
+                    }
+                    
+                    // Store user ID for API calls
+                    currentUserId = user.id;
+                    
+                    // Update welcome message with doctor's name
+                    document.querySelector('.welcome-panel h2').textContent = `Welcome, Dr. ${user.fullName.split(' ')[1] || user.fullName}`;
+                    
+                    // Update profile dropdown
+                    updateProfileDropdown(user);
+                    
+                    // Load today's appointments
+                    loadTodayAppointments();
+                    
+                    // Load patient summary
+                    loadPatientSummary();
+                })
+                .catch(error => {
+                    console.error('Authentication error:', error);
+                    window.location.href = '/auth.html';
+                });
+                
+            // Fetch today's appointments from the API
+            function loadTodayAppointments() {
+                const loadingIndicator = document.getElementById('loading-appointments');
+                const appointmentsList = document.getElementById('today-appointments');
+                
+                fetch(API_ENDPOINTS.doctorAppointments, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch appointments');
+                    }
+                    return response.json();
+                })
+                .then(appointments => {
+                    // Hide loading indicator
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                    
+                    // Filter for today's appointments only
+                    const today = getChicagoDate();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const todayAppointments = appointments.filter(appointment => {
+                        const appointmentDate = getChicagoDate(new Date(appointment.date));
+                        appointmentDate.setHours(0, 0, 0, 0);
+                        return appointmentDate.getTime() === today.getTime() && appointment.status === 'scheduled';
+                    });
+                    
+                    // Sort appointments by time in Chicago timezone
+                    todayAppointments.sort((a, b) => getChicagoDate(new Date(a.date)) - getChicagoDate(new Date(b.date)));
+                    
+                    // If no appointments today, show message
+                    if (todayAppointments.length === 0) {
+                        appointmentsList.innerHTML = '<div class="appointment-item">No appointments scheduled for today.</div>';
+                        return;
+                    }
+                    
+                    // Clear existing appointments
+                    appointmentsList.innerHTML = '';
+                    
+                    // Add appointments to the list
+                    todayAppointments.forEach(appointment => {
+                        const appointmentDate = getChicagoDate(new Date(appointment.date));
+                        const timeStr = formatInChicagoTimezone(appointmentDate, { 
+                            hour: 'numeric', 
+                            minute: '2-digit',
+                            hour12: true 
+                        });
+                        
+                        const appointmentItem = document.createElement('div');
+                        appointmentItem.className = 'appointment-item';
+                        appointmentItem.innerHTML = `
+                            <strong>${timeStr}</strong> - ${appointment.patientName} (${appointment.type})
+                        `;
+                        
+                        appointmentsList.appendChild(appointmentItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading appointments:', error);
+                    appointmentsList.innerHTML = '<div class="appointment-item" style="color: #ef4444;">Failed to load appointments. Please try refreshing the page.</div>';
+                });
+            }
+            
+            // Load patient summary data
+            function loadPatientSummary() {
+                const patientSummary = document.getElementById('patient-summary');
+                
+                fetch(API_ENDPOINTS.doctorAppointments, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch appointments');
+                    }
+                    return response.json();
+                })
+                .then(appointments => {
+                    // Count total patients (unique patient IDs)
+                    const patientIds = new Set();
+                    appointments.forEach(appointment => {
+                        if (appointment.patient_id) {
+                            patientIds.add(appointment.patient_id);
+                        }
+                    });
+                    
+                    // Count upcoming appointments
+                    const today = getChicagoDate();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    const upcomingAppointments = appointments.filter(appointment => {
+                        const appointmentDate = getChicagoDate(new Date(appointment.date));
+                        return appointmentDate >= today && appointment.status === 'scheduled';
+                    });
+                    
+                    // Display summary
+                    patientSummary.innerHTML = `
+                        <p><strong>Total Patients:</strong> ${patientIds.size}</p>
+                        <p><strong>Upcoming Appointments:</strong> ${upcomingAppointments.length}</p>
+                        <p><strong>Last Updated:</strong> ${formatInChicagoTimezone(getChicagoDate(), {
+                            dateStyle: 'medium',
+                            timeStyle: 'medium'
+                        })}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error loading patient summary:', error);
+                    patientSummary.innerHTML = '<p style="color: #ef4444;">Failed to load patient summary. Please try refreshing the page.</p>';
+                });
+            }
+                
+            // Handle logout button click
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Clear local storage tokens
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                
+                // Call logout API
+                fetch(API_ENDPOINTS.logout, {
+                    method: 'POST',
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Logout failed');
+                    }
+                    // Redirect to login page after successful logout with a parameter
+                    window.location.href = '/auth.html?logout=true';
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    // Try to redirect anyway with the logout parameter
+                    window.location.href = '/auth.html?logout=true';
+                });
+            });
+            
+            // Function to update the profile dropdown with user information
+            function updateProfileDropdown(user) {
+                // Update the profile icon with user's initial
+                const profileIcon = document.getElementById('profile-icon');
+                if (profileIcon) {
+                    // Use the first letter of the doctor's name
+                    const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : 'D';
+                    profileIcon.textContent = initial;
+                }
+                
+                // Update user name and email in dropdown
+                const dropdownName = document.getElementById('dropdown-name');
+                const dropdownEmail = document.getElementById('dropdown-email');
+                
+                if (dropdownName) {
+                    // Check if the user's name already has "Dr." prefix to avoid duplication
+                    const hasPrefix = user.fullName && user.fullName.startsWith('Dr.');
+                    dropdownName.textContent = user.role === 'doctor' 
+                        ? (hasPrefix ? user.fullName : `Dr. ${user.fullName}`) 
+                        : user.fullName;
+                }
+                
+                if (dropdownEmail) {
+                    dropdownEmail.textContent = user.email;
+                }
+                
+                // If user has a profile picture, display it instead of the initial
+                if (user.profilePicture) {
+                    profileIcon.innerHTML = `<img src="${user.profilePicture}" alt="${user.fullName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

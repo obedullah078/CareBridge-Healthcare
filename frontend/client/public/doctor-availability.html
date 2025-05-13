@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Availability - CareBridge</title>
+    <!-- Add reference to the API configuration file -->
+    <script src="/js/api-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        header {
+            background-color: #1a365d;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .welcome-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #9ca3af;
+        }
+        .btn-secondary:hover {
+            background-color: #6b7280;
+        }
+        .navbar {
+            display: flex;
+            gap: 1rem;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+        }
+        .availability-container {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .calendar {
+            flex: 1;
+            min-width: 300px;
+        }
+        .time-slots {
+            flex: 1;
+            min-width: 300px;
+        }
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .calendar-day {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .calendar-day:hover {
+            background-color: #e5e7eb;
+        }
+        .calendar-day.selected {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .calendar-day.today {
+            border: 2px solid #3b82f6;
+        }
+        .slot-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .time-slot {
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .time-slot.available {
+            background-color: #ecfdf5;
+            border-color: #10b981;
+        }
+        .time-slot.unavailable {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
+        .time-slot:hover {
+            border-color: #3b82f6;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        /* Profile dropdown styles */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+            color: #333;
+        }
+        .profile-dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .dropdown-header .user-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .dropdown-header .user-email {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        .dropdown-link {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: #333;
+        }
+        .dropdown-link:hover {
+            background-color: #f3f4f6;
+        }
+        .dropdown-link.logout {
+            border-top: 1px solid #e5e7eb;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CareBridge</h1>
+        <nav class="navbar" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/doctor-dashboard.html" style="color: white;">Dashboard</a>
+            <a href="/doctor-appointments.html" style="color: white;">Appointments</a>
+            <a href="/doctor-availability.html" style="color: white;">Availability</a>
+            <a href="/doctor-profile.html" style="color: white;">My Profile</a>
+            <div class="profile-dropdown">
+                <div class="profile-icon" id="profile-icon">D</div>
+                <div class="dropdown-content">
+                    <div class="dropdown-header">
+                        <div class="user-name" id="dropdown-name">Dr. John Doe</div>
+                        <div class="user-email" id="dropdown-email">doctor@example.com</div>
+                    </div>
+                    <a href="/doctor-profile.html" class="dropdown-link">Profile</a>
+                    <a href="#" id="logout-btn" class="dropdown-link logout">Logout</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="welcome-panel">
+            <h2>Manage Your Availability</h2>
+            <p>Set your available time slots for patient appointments.</p>
+        </div>
+
+        <div class="availability-container">
+            <div class="calendar card">
+                <h3>Select Date</h3>
+                <div class="controls">
+                    <button id="prev-month" class="btn btn-secondary">&lt; Prev</button>
+                    <div id="current-month">April 2025</div>
+                    <button id="next-month" class="btn btn-secondary">Next &gt;</button>
+                </div>
+                <div class="calendar-header">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                </div>
+                <div id="calendar-days" class="calendar-days">
+                    <!-- Calendar days will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <div class="time-slots card">
+                <h3>Time Slots for <span id="selected-date">Select a date</span></h3>
+                <div id="no-date-selected">
+                    <p>Please select a date from the calendar to manage time slots.</p>
+                </div>
+                <div id="time-slot-container" style="display: none;">
+                    <p>Click on a time slot to toggle availability:</p>
+                    <div id="slot-list" class="slot-list">
+                        <!-- Time slots will be inserted here by JavaScript -->
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <button id="save-availability" class="btn">Save Availability</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variable to store the current user/doctor ID
+            let currentUserId = null;
+            let currentUser = null;
+            let loadingMessage = null;
+            let csrfToken = null; // Added variable to store CSRF token
+            
+            // Fetch CSRF token first - using API_ENDPOINTS
+            fetch(API_BASE_URL + '/api/csrf-token')
+                .then(response => response.json())
+                .then(data => {
+                    csrfToken = data.csrf_token;
+                    console.log('CSRF token fetched successfully');
+                    
+                    // Store it in localStorage for persistence
+                    localStorage.setItem('csrfToken', csrfToken);
+                })
+                .catch(error => {
+                    console.error('Error fetching CSRF token:', error);
+                    
+                    // Try to get from localStorage as fallback
+                    csrfToken = localStorage.getItem('csrfToken');
+                });
+
+            // Check if user is authenticated as a doctor - using API_ENDPOINTS
+            const token = localStorage.getItem('access_token');
+            
+            fetch(API_ENDPOINTS.user, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        window.location.href = '/auth.html';
+                        throw new Error('Not authenticated');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    if (user.role !== 'doctor') {
+                        window.location.href = '/patient-dashboard.html';
+                    }
+                    // Store user data
+                    currentUser = user;
+                    currentUserId = user.id;
+                    
+                    // Update profile dropdown
+                    updateProfileDropdown(user);
+                })
+                .catch(error => {
+                    console.error('Authentication error:', error);
+                    window.location.href = '/auth.html';
+                });
+                
+            // Function to update the profile dropdown with user information
+            function updateProfileDropdown(user) {
+                // Update the profile icon with user's initial
+                const profileIcon = document.getElementById('profile-icon');
+                if (profileIcon) {
+                    // Use the first letter of the doctor's name
+                    const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : 'D';
+                    profileIcon.textContent = initial;
+                }
+                
+                // Update user name and email in dropdown
+                const dropdownName = document.getElementById('dropdown-name');
+                const dropdownEmail = document.getElementById('dropdown-email');
+                
+                if (dropdownName) {
+                    // Check if the user's name already has "Dr." prefix to avoid duplication
+                    const hasPrefix = user.fullName && user.fullName.startsWith('Dr.');
+                    dropdownName.textContent = user.role === 'doctor' 
+                        ? (hasPrefix ? user.fullName : `Dr. ${user.fullName}`) 
+                        : user.fullName;
+                }
+                
+                if (dropdownEmail) {
+                    dropdownEmail.textContent = user.email;
+                }
+                
+                // If user has a profile picture, display it instead of the initial
+                if (user.profilePicture) {
+                    profileIcon.innerHTML = `<img src="${user.profilePicture}" alt="${user.fullName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                }
+            }
+
+            // Logout button handler - using API_ENDPOINTS
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Clear local storage tokens
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                
+                fetch(API_ENDPOINTS.logout, {
+                    method: 'POST',
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Logout failed');
+                    }
+                    window.location.href = '/auth.html?logout=true';
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    window.location.href = '/auth.html?logout=true';
+                });
+            });
+
+            // Calendar implementation
+            // Initialize current date in Chicago timezone
+            let currentDate = getChicagoDate();
+            let selectedDate = null;
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+            
+            // Track time slots for the selected date
+            let timeSlots = [];
+            // Create time slots in 30-minute intervals from 8:00 AM to 7:30 PM
+            const defaultTimeSlots = Array.from({ length: 24 }, (_, i) => {
+                const hour = Math.floor(i / 2) + 8;
+                const minutes = i % 2 === 0 ? '00' : '30';
+                return {
+                    time: `${hour}:${minutes}`,
+                    isAvailable: false
+                };
+            });
+
+            // Initialize calendar
+            updateCalendar();
+            updateMonthDisplay();
+
+            // Event listeners for month navigation
+            document.getElementById('prev-month').addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                updateCalendar();
+                updateMonthDisplay();
+            });
+
+            document.getElementById('next-month').addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                updateCalendar();
+                updateMonthDisplay();
+            });
+
+            // Save availability button
+            document.getElementById('save-availability').addEventListener('click', function() {
+                if (!selectedDate || !currentUserId) return;
+                
+                if (!csrfToken) {
+                    console.error('CSRF token not available. Fetching it now...');
+                    // Try to fetch the token again if not available
+                    fetch(API_BASE_URL + '/api/csrf-token')
+                        .then(response => response.json())
+                        .then(data => {
+                            csrfToken = data.csrf_token;
+                            console.log('CSRF token fetched successfully, retry saving');
+                            saveAvailability();
+                        })
+                        .catch(error => {
+                            console.error('Error fetching CSRF token:', error);
+                            // Show error to the user
+                            const feedback = document.createElement('div');
+                            feedback.style.backgroundColor = '#fee2e2';
+                            feedback.style.color = '#b91c1c';
+                            feedback.style.padding = '0.5rem';
+                            feedback.style.borderRadius = '4px';
+                            feedback.style.marginTop = '1rem';
+                            feedback.textContent = 'Failed to get security token. Please refresh the page and try again.';
+                            document.getElementById('save-availability').parentNode.appendChild(feedback);
+                            setTimeout(() => feedback.remove(), 5000);
+                        });
+                    return;
+                }
+                
+                saveAvailability();
+            });
+            
+            // Function to save availability
+            function saveAvailability() {
+                // Get the day of week (0-6, where 0 is Sunday)
+                const dayOfWeek = selectedDate.getDay();
+                
+                // Format the full date in YYYY-MM-DD format for API
+                const formattedDate = selectedDate.toISOString().split('T')[0];
+                
+                // Find the earliest and latest available time slots
+                let startHour = 24;
+                let endHour = 0;
+                let startMinute = 0;
+                let endMinute = 0;
+                let anySlotAvailable = false;
+                
+                timeSlots.forEach(slot => {
+                    if (slot.isAvailable) {
+                        anySlotAvailable = true;
+                        const [hourStr, minuteStr] = slot.time.split(':');
+                        const hour = parseInt(hourStr);
+                        const minute = parseInt(minuteStr);
+                        
+                        if (hour < startHour || (hour === startHour && minute < startMinute)) {
+                            startHour = hour;
+                            startMinute = minute;
+                        }
+                        
+                        if (hour > endHour || (hour === endHour && minute > endMinute)) {
+                            endHour = hour;
+                            endMinute = minute;
+                            // Add 30 minutes to the end time (unless it's already at :30)
+                            if (endMinute === 0) {
+                                endMinute = 30;
+                            } else {
+                                endHour += 1;
+                                endMinute = 0;
+                            }
+                        }
+                    }
+                });
+                
+                // If no slots are available, use default range but mark as unavailable
+                if (!anySlotAvailable) {
+                    startHour = 9;
+                    startMinute = 0;
+                    endHour = 17;
+                    endMinute = 0;
+                }
+                
+                // Format times in HH:MM format
+                const startTime = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
+                const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+                
+                // Create availability data object
+                const availabilityData = {
+                    dayOfWeek: dayOfWeek,
+                    date: formattedDate,  // Add specific date
+                    startTime: startTime,
+                    endTime: endTime,
+                    isAvailable: anySlotAvailable
+                };
+                
+                // Log the data being sent
+                console.log('Saving availability data:', availabilityData);
+                
+                // Show saving state
+                const saveButton = document.getElementById('save-availability');
+                const originalText = saveButton.textContent;
+                saveButton.textContent = 'Saving...';
+                saveButton.disabled = true;
+                
+                // Get CSRF token - try from variable first, then localStorage as backup
+                const token = csrfToken || localStorage.getItem('csrfToken');
+                
+                // Prepare headers
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                // Add CSRF token if available
+                if (token) {
+                    headers['X-CSRFToken'] = token;
+                }
+                
+                // Send data to the server - using API_ENDPOINTS
+                const availabilityUrl = API_BASE_URL + `/api/doctors/${currentUserId}/availability`;
+                
+                fetch(availabilityUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(availabilityData),
+                    credentials: 'include' // Include credentials for session cookies
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // Log response status for debugging
+                        console.error('Server returned status:', response.status);
+                        
+                        // Try to get more information from the response
+                        return response.json().then(errorData => {
+                            throw new Error(`Failed to save availability: ${errorData.error || response.statusText}`);
+                        }).catch(err => {
+                            if (err instanceof SyntaxError) {
+                                throw new Error(`Failed to save availability: ${response.statusText}`);
+                            }
+                            throw err;
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Show success message
+                    const feedback = document.createElement('div');
+                    feedback.style.backgroundColor = '#ecfdf5';
+                    feedback.style.color = '#065f46';
+                    feedback.style.padding = '0.5rem';
+                    feedback.style.borderRadius = '4px';
+                    feedback.style.marginTop = '1rem';
+                    feedback.textContent = 'Availability saved successfully!';
+                    
+                    // Insert the feedback message after the save button
+                    saveButton.parentNode.appendChild(feedback);
+                    
+                    // Remove the message after 3 seconds
+                    setTimeout(() => {
+                        feedback.remove();
+                    }, 3000);
+                    
+                    console.log('Availability saved:', data);
+                })
+                .catch(error => {
+                    console.error('Error saving availability:', error);
+                    
+                    // Show error message
+                    const feedback = document.createElement('div');
+                    feedback.style.backgroundColor = '#fee2e2';
+                    feedback.style.color = '#b91c1c';
+                    feedback.style.padding = '0.5rem';
+                    feedback.style.borderRadius = '4px';
+                    feedback.style.marginTop = '1rem';
+                    feedback.textContent = error.message || 'Failed to save availability. Please try again.';
+                    
+                    // Insert the feedback message after the save button
+                    saveButton.parentNode.appendChild(feedback);
+                    
+                    // Remove the message after 5 seconds
+                    setTimeout(() => {
+                        feedback.remove();
+                    }, 5000);
+                })
+                .finally(() => {
+                    // Reset button state
+                    saveButton.textContent = originalText;
+                    saveButton.disabled = false;
+                });
+            }
+
+            // Helper function to update the calendar
+            function updateCalendar() {
+                const calendarDays = document.getElementById('calendar-days');
+                calendarDays.innerHTML = '';
+                
+                const firstDay = getChicagoDate(new Date(currentYear, currentMonth, 1)).getDay();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                
+                // Add empty cells for days before the first day of the month
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    calendarDays.appendChild(emptyDay);
+                }
+                
+                // Current date for comparison (to disable past dates)
+                const today = getChicagoDate();
+                today.setHours(0, 0, 0, 0);
+                
+                // Add days of the month
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = i;
+                    
+                    // Create dayDate in Chicago timezone context
+                    const dayDate = getChicagoDate(new Date(currentYear, currentMonth, i, 0, 0, 0));
+                    
+                    // Check if this day is in the past
+                    const isPastDate = dayDate < today;
+                    
+                    // Check if this day is today
+                    if (isToday(dayDate)) {
+                        dayElement.classList.add('today');
+                    }
+                    
+                    // Check if this day is selected
+                    if (selectedDate && isSameDay(dayDate, selectedDate)) {
+                        dayElement.classList.add('selected');
+                    }
+                    
+                    // Disable past dates
+                    if (isPastDate) {
+                        dayElement.classList.add('disabled');
+                        dayElement.style.color = '#ccc';
+                        dayElement.style.cursor = 'not-allowed';
+                        dayElement.style.backgroundColor = '#f5f5f5';
+                    } else {
+                        // Add click event only for current and future dates
+                        dayElement.addEventListener('click', function() {
+                            document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+                            dayElement.classList.add('selected');
+                            selectedDate = dayDate;
+                            updateSelectedDate();
+                            loadTimeSlots();
+                        });
+                    }
+                    
+                    calendarDays.appendChild(dayElement);
+                }
+            }
+
+            // Update the month and year display
+            function updateMonthDisplay() {
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                document.getElementById('current-month').textContent = `${months[currentMonth]} ${currentYear}`;
+            }
+
+            // Update the selected date display
+            function updateSelectedDate() {
+                if (selectedDate) {
+                    document.getElementById('selected-date').textContent = formatDate(selectedDate);
+                    document.getElementById('no-date-selected').style.display = 'none';
+                    document.getElementById('time-slot-container').style.display = 'block';
+                } else {
+                    document.getElementById('selected-date').textContent = 'Select a date';
+                    document.getElementById('no-date-selected').style.display = 'block';
+                    document.getElementById('time-slot-container').style.display = 'none';
+                }
+            }
+
+            // Load time slots for the selected date
+            function loadTimeSlots() {
+                if (!selectedDate || !currentUserId) return;
+                
+                // Get day of week (0-6, where 0 is Sunday)
+                const dayOfWeek = selectedDate.getDay();
+                
+                // Format date for API
+                const formattedDate = selectedDate.toISOString().split('T')[0];
+                
+                // Show loading state
+                const slotList = document.getElementById('slot-list');
+                slotList.innerHTML = '<p>Loading time slots...</p>';
+                
+                // Fetch availability from the server - using API_ENDPOINTS
+                const availabilityUrl = API_BASE_URL + `/api/doctors/${currentUserId}/availability`;
+                
+                fetch(availabilityUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load availability');
+                        }
+                        return response.json();
+                    })
+                    .then(availabilities => {
+                        // First try to find availability for the specific date
+                        let dayAvailability = availabilities.find(a => a.date === formattedDate);
+                        
+                        // If no specific date entry exists, fall back to day of week
+                        if (!dayAvailability) {
+                            dayAvailability = availabilities.find(a => a.dayOfWeek === dayOfWeek && !a.date);
+                        }
+                        
+                        // Generate default time slots in 30-minute intervals from 8 AM to 7:30 PM
+                        timeSlots = Array.from({ length: 24 }, (_, i) => {
+                            const hour = Math.floor(i / 2) + 8;
+                            const minutes = i % 2 === 0 ? '00' : '30';
+                            return {
+                                time: `${hour}:${minutes}`,
+                                isAvailable: false
+                            };
+                        });
+                        
+                        // If we have availability data for this day, update slots
+                        if (dayAvailability) {
+                            const startTime = dayAvailability.startTime;
+                            const endTime = dayAvailability.endTime;
+                            const isAvailable = dayAvailability.isAvailable;
+                            
+                            // Parse start and end times
+                            const [startHour, startMinute] = startTime.split(':').map(Number);
+                            const [endHour, endMinute] = endTime.split(':').map(Number);
+                            
+                            // Mark slots as available based on the time range
+                            timeSlots.forEach(slot => {
+                                const [slotHour, slotMinute] = slot.time.split(':').map(Number);
+                                
+                                // Convert times to minutes for easier comparison
+                                const slotTimeInMinutes = slotHour * 60 + slotMinute;
+                                const startTimeInMinutes = startHour * 60 + startMinute;
+                                const endTimeInMinutes = endHour * 60 + endMinute;
+                                
+                                // Mark slot as available if it falls within the available time range
+                                if (slotTimeInMinutes >= startTimeInMinutes && 
+                                    slotTimeInMinutes < endTimeInMinutes && 
+                                    isAvailable) {
+                                    slot.isAvailable = true;
+                                }
+                            });
+                        }
+                        
+                        renderTimeSlots();
+                    })
+                    .catch(error => {
+                        console.error('Error loading availability:', error);
+                        slotList.innerHTML = '<p>Failed to load time slots. Please try again.</p>';
+                    });
+            }
+
+            // Render time slots in the UI
+            function renderTimeSlots() {
+                const slotList = document.getElementById('slot-list');
+                slotList.innerHTML = '';
+                
+                // Get current date and time for comparing past time slots
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const isToday = selectedDate && (
+                    selectedDate.getDate() === now.getDate() &&
+                    selectedDate.getMonth() === now.getMonth() &&
+                    selectedDate.getFullYear() === now.getFullYear()
+                );
+                
+                timeSlots.forEach((slot, index) => {
+                    const slotElement = document.createElement('div');
+                    
+                    // Parse the slot time
+                    const [hourStr, minuteStr] = slot.time.split(':');
+                    const slotHour = parseInt(hourStr);
+                    const slotMinute = parseInt(minuteStr);
+                    
+                    // Check if this time slot is in the past (only matters for today)
+                    const isPastTimeSlot = isToday && (
+                        // Get current time in Chicago timezone and compare with slot time in Chicago timezone
+                        (() => {
+                            const chicagoNow = getChicagoDate();
+                            
+                            // Create a Chicago date with the proper time to compare
+                            const chicagoDate = getChicagoDate();
+                            chicagoDate.setHours(slotHour, slotMinute, 0, 0);
+                            
+                            // Now compare both dates in the same timezone context
+                            return chicagoDate < chicagoNow;
+                        })()
+                    );
+                    
+                    // Format time for display (12-hour format)
+                    const displayHour = slotHour % 12 === 0 ? 12 : slotHour % 12;
+                    const ampm = slotHour < 12 ? 'AM' : 'PM';
+                    const displayTime = `${displayHour}:${minuteStr} ${ampm}`;
+                    
+                    // Set appropriate class based on availability and whether the slot is in the past
+                    if (isPastTimeSlot) {
+                        slotElement.className = 'time-slot disabled';
+                        slotElement.style.backgroundColor = '#f5f5f5';
+                        slotElement.style.color = '#ccc';
+                        slotElement.style.cursor = 'not-allowed';
+                        slotElement.style.borderColor = '#ddd';
+                    } else {
+                        slotElement.className = `time-slot ${slot.isAvailable ? 'available' : 'unavailable'}`;
+                        // Add click event only for future time slots
+                        slotElement.addEventListener('click', function() {
+                            timeSlots[index].isAvailable = !timeSlots[index].isAvailable;
+                            slotElement.className = `time-slot ${timeSlots[index].isAvailable ? 'available' : 'unavailable'}`;
+                        });
+                    }
+                    
+                    slotElement.textContent = displayTime;
+                    slotList.appendChild(slotElement);
+                });
+            }
+
+            // Helper function to check if a date is today
+            function isToday(date) {
+                const today = getChicagoDate();
+                return today.getDate() === date.getDate() &&
+                       today.getMonth() === date.getMonth() &&
+                       today.getFullYear() === date.getFullYear();
+            }
+
+            // Helper function to check if two dates are the same day
+            function isSameDay(date1, date2) {
+                return date1.getDate() === date2.getDate() &&
+                       date1.getMonth() === date1.getMonth() &&
+                       date1.getFullYear() === date2.getFullYear();
+            }
+
+            // Helper function to format date as "Month Day, Year"
+            function formatDate(date) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                return formatInChicagoTimezone(date, options);
+            }
+        });
+    </script>
+</body>
+</html>

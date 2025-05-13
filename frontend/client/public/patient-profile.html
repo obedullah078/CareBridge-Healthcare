@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Profile - CareBridge</title>
+    <!-- Add reference to the API configuration file -->
+    <script src="/js/api-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+        }
+        header {
+            background-color: #1a365d;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .profile-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+        .btn {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-col {
+            flex: 1;
+        }
+        .error-message {
+            color: #ef4444;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+        .success-message {
+            color: #10b981;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            background-color: #e5e7eb;
+            margin-right: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-avatar-placeholder {
+            font-size: 3rem;
+            color: #9ca3af;
+        }
+        .profile-info {
+            flex: 1;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        /* Profile dropdown styles */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+            color: #333;
+        }
+        .profile-dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .dropdown-header .user-name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .dropdown-header .user-email {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        .dropdown-link {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            color: #333;
+        }
+        .dropdown-link:hover {
+            background-color: #f3f4f6;
+        }
+        .dropdown-link.logout {
+            border-top: 1px solid #e5e7eb;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CareBridge</h1>
+        <nav class="navbar" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/patient-dashboard.html" style="color: white;">Dashboard</a>
+            <a href="/patient-appointments.html" style="color: white;">My Appointments</a>
+            <a href="/patient-find-doctors.html" style="color: white;">Find Doctors</a>
+            <a href="/patient-profile.html" style="color: white;">My Profile</a>
+            <div class="profile-dropdown">
+                <div class="profile-icon" id="profile-icon">P</div>
+                <div class="dropdown-content">
+                    <div class="dropdown-header">
+                        <div class="user-name" id="dropdown-name">John Doe</div>
+                        <div class="user-email" id="dropdown-email">patient@example.com</div>
+                    </div>
+                    <a href="/patient-profile.html" class="dropdown-link">Profile</a>
+                    <a href="#" id="logout-btn" class="dropdown-link logout">Logout</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">
+                    <div class="profile-avatar-placeholder">👤</div>
+                </div>
+                <div class="profile-info">
+                    <h2 id="patient-name">John Doe</h2>
+                    <p id="patient-email">john.doe@example.com</p>
+                </div>
+            </div>
+            
+            <div class="section-header">
+                <h3>Personal Information</h3>
+                <button id="edit-profile-btn" class="btn">Edit Profile</button>
+            </div>
+            
+            <!-- View Mode -->
+            <div id="profile-view-mode">
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Full Name:</strong> <span id="view-full-name"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Username:</strong> <span id="view-username"></span></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Email:</strong> <span id="view-email"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Phone:</strong> <span id="view-phone"></span></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Date of Birth:</strong> <span id="view-dob"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Gender:</strong> <span id="view-gender"></span></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Blood Type:</strong> <span id="view-blood-type"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Height:</strong> <span id="view-height"></span> cm</p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Weight:</strong> <span id="view-weight"></span> kg</p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Emergency Contact:</strong> <span id="view-emergency-contact"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Emergency Phone:</strong> <span id="view-emergency-phone"></span></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Medical History:</strong></p>
+                        <p id="view-medical-history"></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Allergies:</strong></p>
+                        <p id="view-allergies"></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Current Medications:</strong></p>
+                        <p id="view-medications"></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Address:</strong> <span id="view-address"></span></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>City:</strong> <span id="view-city"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>State:</strong> <span id="view-state"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Zip Code:</strong> <span id="view-zipcode"></span></p>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <p><strong>Insurance Provider:</strong> <span id="view-insurance-provider"></span></p>
+                    </div>
+                    <div class="form-col">
+                        <p><strong>Insurance ID:</strong> <span id="view-insurance-id"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Mode -->
+            <div id="profile-edit-mode" style="display: none;">
+                <form id="profile-form">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="fullName">Full Name</label>
+                                <input type="text" id="fullName" name="fullName" required>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input type="tel" id="phone" name="phone">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="dateOfBirth">Date of Birth</label>
+                                <input type="date" id="dateOfBirth" name="dateOfBirth">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="gender">Gender</label>
+                                <select id="gender" name="gender">
+                                    <option value="">Select Gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="profilePicture">Profile Picture URL</label>
+                                <input type="url" id="profilePicture" name="profilePicture" placeholder="https://example.com/image.jpg">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="bloodType">Blood Type</label>
+                                <select id="bloodType" name="bloodType">
+                                    <option value="">Select Blood Type</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="height">Height (cm)</label>
+                                <input type="number" id="height" name="height" min="1">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="weight">Weight (kg)</label>
+                                <input type="number" id="weight" name="weight" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="emergencyContact">Emergency Contact Name</label>
+                                <input type="text" id="emergencyContact" name="emergencyContact">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="emergencyPhone">Emergency Contact Phone</label>
+                                <input type="tel" id="emergencyPhone" name="emergencyPhone">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="medicalHistory">Medical History</label>
+                                <textarea id="medicalHistory" name="medicalHistory" placeholder="List any past medical conditions, surgeries, or hospitalizations"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="allergies">Allergies</label>
+                                <textarea id="allergies" name="allergies" placeholder="List any allergies to medications, foods, or environmental factors"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="currentMedications">Current Medications</label>
+                                <textarea id="currentMedications" name="currentMedications" placeholder="List all current medications, dosages, and frequency"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <input type="text" id="address" name="address">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" name="city">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="state">State</label>
+                                <input type="text" id="state" name="state">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="zipCode">Zip Code</label>
+                                <input type="text" id="zipCode" name="zipCode">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="insuranceProvider">Insurance Provider</label>
+                                <input type="text" id="insuranceProvider" name="insuranceProvider">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="insuranceId">Insurance ID</label>
+                                <input type="text" id="insuranceId" name="insuranceId">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-col">
+                            <button type="submit" class="btn">Save Changes</button>
+                            <button type="button" id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div id="error-message" class="error-message">
+                        An error occurred while saving your profile.
+                    </div>
+                    <div id="success-message" class="success-message">
+                        Profile updated successfully!
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Global variables
+            let currentUser = null;
+            const token = localStorage.getItem('access_token');
+            
+            // DOM elements
+            const viewMode = document.getElementById('profile-view-mode');
+            const editMode = document.getElementById('profile-edit-mode');
+            const editBtn = document.getElementById('edit-profile-btn');
+            const cancelBtn = document.getElementById('cancel-edit-btn');
+            const profileForm = document.getElementById('profile-form');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            // Check if user is authenticated as a patient
+            fetch(API_ENDPOINTS.profile, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/auth.html';
+                    }
+                    throw new Error('Failed to fetch profile data');
+                }
+                return response.json();
+            })
+            .then(user => {
+                if (user.role !== 'patient') {
+                    window.location.href = '/doctor-dashboard.html';
+                    return;
+                }
+                
+                // Store user data
+                currentUser = user;
+                
+                // Update header information
+                document.getElementById('patient-name').textContent = user.fullName || 'Patient';
+                document.getElementById('patient-email').textContent = user.email || '';
+                
+                // Update profile dropdown
+                updateProfileDropdown(user);
+                
+                // Handle profile picture if available
+                if (user.profilePicture) {
+                    const avatarDiv = document.getElementById('profile-avatar');
+                    avatarDiv.innerHTML = `<img src="${user.profilePicture}" alt="Patient profile picture">`;
+                }
+                
+                // Populate view mode fields
+                populateViewMode(user);
+                
+                // Pre-fill the edit form
+                populateEditForm(user);
+            })
+            .catch(error => {
+                console.error('Error fetching profile data:', error);
+                errorMessage.textContent = 'Failed to load profile data. Please try refreshing the page.';
+                errorMessage.style.display = 'block';
+            });
+            
+            // Handle edit button click
+            editBtn.addEventListener('click', function() {
+                viewMode.style.display = 'none';
+                editMode.style.display = 'block';
+            });
+            
+            // Handle cancel button click
+            cancelBtn.addEventListener('click', function() {
+                viewMode.style.display = 'block';
+                editMode.style.display = 'none';
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                populateEditForm(currentUser);  // Reset form to original values
+            });
+            
+            // Handle form submission
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Clear messages
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                
+                // Get form data
+                const formData = new FormData(profileForm);
+                const updatedProfile = {};
+                
+                // Convert form data to JSON object
+                for (const [key, value] of formData.entries()) {
+                    if (value.trim() !== '') {  // Only include non-empty values
+                        updatedProfile[key] = value;
+                    }
+                }
+                
+                // Send update request
+                fetch(API_ENDPOINTS.profile, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updatedProfile),
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update profile');
+                    }
+                    return response.json();
+                })
+                .then(updatedUser => {
+                    // Update stored user data
+                    currentUser = updatedUser;
+                    
+                    // Update view mode
+                    populateViewMode(updatedUser);
+                    
+                    // Show success message
+                    successMessage.style.display = 'block';
+                    
+                    // Switch back to view mode after a delay
+                    setTimeout(() => {
+                        viewMode.style.display = 'block';
+                        editMode.style.display = 'none';
+                        successMessage.style.display = 'none';
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Error updating profile:', error);
+                    errorMessage.style.display = 'block';
+                });
+            });
+            
+            // Handle logout button click
+            document.getElementById('logout-btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Clear local storage tokens
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                
+                // Call logout API
+                fetch(API_ENDPOINTS.logout, {
+                    method: 'POST',
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Logout failed');
+                    }
+                    window.location.href = '/auth.html?logout=true';
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    window.location.href = '/auth.html?logout=true';
+                });
+            });
+            
+            function populateViewMode(user) {
+                // Set personal information
+                document.getElementById('view-full-name').textContent = user.fullName || 'Not provided';
+                document.getElementById('view-username').textContent = user.username || 'Not provided';
+                document.getElementById('view-email').textContent = user.email || 'Not provided';
+                document.getElementById('view-phone').textContent = user.phone || 'Not provided';
+                document.getElementById('view-gender').textContent = user.gender || 'Not provided';
+                document.getElementById('view-dob').textContent = user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'Not provided';
+                
+                // Set health information
+                document.getElementById('view-blood-type').textContent = user.bloodType || 'Not provided';
+                document.getElementById('view-height').textContent = user.height || 'Not provided';
+                document.getElementById('view-weight').textContent = user.weight || 'Not provided';
+                document.getElementById('view-emergency-contact').textContent = user.emergencyContact || 'Not provided';
+                document.getElementById('view-emergency-phone').textContent = user.emergencyPhone || 'Not provided';
+                document.getElementById('view-medical-history').textContent = user.medicalHistory || 'None provided';
+                document.getElementById('view-allergies').textContent = user.allergies || 'None provided';
+                document.getElementById('view-medications').textContent = user.currentMedications || 'None provided';
+                
+                // Set address information
+                document.getElementById('view-address').textContent = user.address || 'Not provided';
+                document.getElementById('view-city').textContent = user.city || 'Not provided';
+                document.getElementById('view-state').textContent = user.state || 'Not provided';
+                document.getElementById('view-zipcode').textContent = user.zipCode || 'Not provided';
+                
+                // Set insurance information
+                document.getElementById('view-insurance-provider').textContent = user.insuranceProvider || 'Not provided';
+                document.getElementById('view-insurance-id').textContent = user.insuranceId || 'Not provided';
+            }
+            
+            function populateEditForm(user) {
+                // Personal information
+                document.getElementById('fullName').value = user.fullName || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+                document.getElementById('gender').value = user.gender || '';
+                document.getElementById('dateOfBirth').value = user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '';
+                document.getElementById('profilePicture').value = user.profilePicture || '';
+                
+                // Health information
+                document.getElementById('bloodType').value = user.bloodType || '';
+                document.getElementById('height').value = user.height || '';
+                document.getElementById('weight').value = user.weight || '';
+                document.getElementById('emergencyContact').value = user.emergencyContact || '';
+                document.getElementById('emergencyPhone').value = user.emergencyPhone || '';
+                document.getElementById('medicalHistory').value = user.medicalHistory || '';
+                document.getElementById('allergies').value = user.allergies || '';
+                document.getElementById('currentMedications').value = user.currentMedications || '';
+                
+                // Address information
+                document.getElementById('address').value = user.address || '';
+                document.getElementById('city').value = user.city || '';
+                document.getElementById('state').value = user.state || '';
+                document.getElementById('zipCode').value = user.zipCode || '';
+                
+                // Insurance information
+                document.getElementById('insuranceProvider').value = user.insuranceProvider || '';
+                document.getElementById('insuranceId').value = user.insuranceId || '';
+            }
+
+            // Update profile dropdown with user information
+            function updateProfileDropdown(user) {
+                // Update the profile icon with user's initial
+                const profileIcon = document.getElementById('profile-icon');
+                if (profileIcon) {
+                    // Use the first letter of the patient's name
+                    const initial = user.fullName ? user.fullName.charAt(0).toUpperCase() : 'P';
+                    profileIcon.textContent = initial;
+                }
+                
+                // Update user name and email in dropdown
+                const dropdownName = document.getElementById('dropdown-name');
+                const dropdownEmail = document.getElementById('dropdown-email');
+                
+                if (dropdownName) {
+                    dropdownName.textContent = user.fullName || 'Patient';
+                }
+                
+                if (dropdownEmail) {
+                    dropdownEmail.textContent = user.email || '';
+                }
+                
+                // If user has a profile picture, display it instead of the initial
+                if (user.profilePicture) {
+                    profileIcon.innerHTML = `<img src="${user.profilePicture}" alt="${user.fullName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
